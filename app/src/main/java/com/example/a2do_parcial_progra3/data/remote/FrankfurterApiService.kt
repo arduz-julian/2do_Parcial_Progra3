@@ -8,6 +8,6 @@ interface FrankfurterApiService {
     @GET("v2/rates")
     suspend fun getRates(
         @Query("base") base: String = "USD",
-        @Query("quotes") quotes: String = "EUR,BOB"
+        @Query("quotes") quotes: String = "EUR"
     ): ExchangeRateResponseDto
 }

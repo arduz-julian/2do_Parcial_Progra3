@@ -31,6 +31,7 @@ class ExchangeRatesRepository(
             val date = response.date.orEmpty()
             val ratesMap = response.rates ?: emptyMap()
 
+
             val entities = ratesMap.map { (currency, rate) ->
                 ExchangeRateEntity(
                     currency = currency,
@@ -38,7 +39,21 @@ class ExchangeRatesRepository(
                     date = date,
                     baseCurrency = baseCurrency
                 )
+            }.toMutableList()
+
+            if (entities.none { it.currency == "BOB" }) {
+                entities.add(
+                    ExchangeRateEntity(
+                        currency = "BOB",
+                        rate = 6.96,
+                        date = date,
+                        baseCurrency = baseCurrency
+                    )
+                )
             }
+
+            exchangeRateDao.insertRates(entities)
+
 
             exchangeRateDao.insertRates(entities)
             Result.success(Unit)
