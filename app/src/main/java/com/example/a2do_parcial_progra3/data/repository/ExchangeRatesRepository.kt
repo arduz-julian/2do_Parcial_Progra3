@@ -26,20 +26,39 @@ class ExchangeRatesRepository(
 
     suspend fun refreshRates(): Result<Unit> {
         return try {
-            val response = apiService.getRates(base = "USD", quotes = "EUR,BOB")
+            val response = apiService.getRates(
+                base = "USD",
+                symbols = "EUR"
+            )
             val baseCurrency = response.base.orEmpty().ifEmpty { "USD" }
             val date = response.date.orEmpty()
             val ratesMap = response.rates ?: emptyMap()
 
 
-            val entities = ratesMap.map { (currency, rate) ->
+
+            val entities = (response.rates ?: emptyMap()).map {
+                    (currency, rate) ->
                 ExchangeRateEntity(
                     currency = currency,
                     rate = rate,
-                    date = date,
-                    baseCurrency = baseCurrency
+                    date = response.date.orEmpty(),
+                    baseCurrency = response.base ?: "USD"
                 )
             }.toMutableList()
+
+// Tasa de respaldo para bolivianos
+            entities.add(
+                ExchangeRateEntity(
+                    currency = "BOB",
+                    rate = 6.96,
+                    date = response.date.orEmpty(),
+                    baseCurrency = response.base ?: "USD"
+                )
+            )
+
+            exchangeRateDao.insertRates(entities)
+            Result.success(Unit)
+
 
             if (entities.none { it.currency == "BOB" }) {
                 entities.add(
